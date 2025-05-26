@@ -21,38 +21,31 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { fetchAllSurveys, fetchCompletedSurveys, Survey } from "@/lib/api"
+import { fetchAllSurveys, fetchCompletedSurveys, Survey, fetchSurveyStats, SurveyStats } from "@/lib/api"
 import { BarChart3, ChevronDown, FileText, Home, Info, Plus, Search, TrendingDown, TrendingUp } from "lucide-react"
 import { useEffect, useState } from "react"
 
-const metrics = [
+const getMetrics = (stats: SurveyStats) => [
   {
-    title: "Created Templates",
-    value: "254",
-    change: "+20%",
-    period: "vs last month",
-    trend: "up",
-  },
-  {
-    title: "Published Templates",
-    value: "100",
-    change: "-20%",
-    period: "vs last month",
-    trend: "down",
+    title: "Total Surveys",
+    value: stats.Total_Surveys.toString(),
+    change: `${stats.Percent_Surveys}%`,
+    period: "vs last period",
+    trend: parseFloat(stats.Percent_Surveys) >= 0 ? "up" : "down",
   },
   {
     title: "Active Surveys",
-    value: "15",
-    change: "-20%",
-    period: "vs last day",
-    trend: "down",
+    value: stats.Active.toString(),
+    change: `${stats.Percent_Active}%`,
+    period: "vs last period",
+    trend: parseFloat(stats.Percent_Active) >= 0 ? "up" : "down",
   },
   {
     title: "Completed Surveys",
-    value: "10",
-    change: "+20%",
-    period: "vs last week",
-    trend: "up",
+    value: stats.Completed.toString(),
+    change: `${stats.Percent_Completed}%`,
+    period: "vs last period",
+    trend: parseFloat(stats.Percent_Completed) >= 0 ? "up" : "down",
   },
 ]
 
@@ -63,24 +56,27 @@ export default function Dashboard() {
   const [surveyType, setSurveyType] = useState<'all' | 'completed'>('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(5)
+  const [metrics, setMetrics] = useState<ReturnType<typeof getMetrics>>([])
 
   useEffect(() => {
-    const fetchSurveys = async () => {
+    const fetchData = async () => {
       try {
         setIsLoading(true)
-        const data = surveyType === 'all' 
-          ? await fetchAllSurveys() 
-          : await fetchCompletedSurveys()
-        setSurveys(data)
+        const [surveysData, statsData] = await Promise.all([
+          surveyType === 'all' ? fetchAllSurveys() : fetchCompletedSurveys(),
+          fetchSurveyStats()
+        ])
+        setSurveys(surveysData)
+        setMetrics(getMetrics(statsData))
       } catch (error) {
-        console.error('Error fetching surveys:', error)
+        console.error('Error fetching data:', error)
         // You might want to show an error toast here
       } finally {
         setIsLoading(false)
       }
     }
 
-    fetchSurveys()
+    fetchData()
   }, [surveyType])
 
   return (
