@@ -5,11 +5,11 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
 import { Input } from "@/components/ui/input"
 import {
   Pagination,
@@ -92,41 +92,44 @@ export default function Dashboard() {
             <Home className="mr-2 h-4 w-4" />
             Dashboard
           </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="w-full justify-between hover:bg-gray-100">
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="surveys" className="border-0">
+              <AccordionTrigger className="py-2 px-3 hover:no-underline hover:bg-gray-100 rounded-md [&[data-state=open]>svg]:rotate-180">
                 <div className="flex items-center">
-                  <FileText className="mr-3 h-4 w-4 text-gray-500" />
+                  <FileText className="mr-3 h-4 w-4 text-gray-500 flex-shrink-0" />
                   <span className="text-sm font-medium">Surveys</span>
                 </div>
-                <ChevronDown className="h-4 w-4 text-gray-400" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56 py-1 rounded-md shadow-lg" align="start" sideOffset={4}>
-              <DropdownMenuItem 
-                className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center justify-between"
-                onClick={() => setSurveyType('all')}
-              >
-                <span>All Surveys</span>
-                {surveyType === 'all' && (
-                  <svg className="h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                )}
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center justify-between"
-                onClick={() => setSurveyType('completed')}
-              >
-                <span>Completed Surveys</span>
-                {surveyType === 'completed' && (
-                  <svg className="h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                )}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              </AccordionTrigger>
+              <AccordionContent className="pt-2">
+                <div className="space-y-1 pl-7">
+                  <Button 
+                    variant="ghost" 
+                    className={`w-full justify-start h-8 text-sm ${surveyType === 'all' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}`}
+                    onClick={() => setSurveyType('all')}
+                  >
+                    <span>All Surveys</span>
+                    {surveyType === 'all' && (
+                      <svg className="ml-auto h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    className={`w-full justify-start h-8 text-sm ${surveyType === 'completed' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}`}
+                    onClick={() => setSurveyType('completed')}
+                  >
+                    <span>Completed Surveys</span>
+                    {surveyType === 'completed' && (
+                      <svg className="ml-auto h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </Button>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
           <Button variant="ghost" className="w-full justify-start">
             <BarChart3 className="mr-2 h-4 w-4" />
             Analytics
