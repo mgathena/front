@@ -157,10 +157,10 @@ export default function Dashboard() {
         {/* Content */}
         <main className="flex-1 overflow-auto p-6">
           {/* Metrics Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {metrics.map((metric, index) => (
               <Card key={index}>
-                <CardHeader className="pb-2">
+                <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium text-gray-600">{metric.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
