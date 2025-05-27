@@ -1,15 +1,15 @@
 "use client"
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import {
   Pagination,
@@ -20,51 +20,76 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { 
-  fetchAllSurveys, 
-  fetchCompletedSurveys, 
-  Survey, 
-  fetchSurveyStats, 
-  SurveyStats, 
-  fetchAllTemplates, 
-  fetchPublishedTemplates, 
-  Template 
+import {
+  fetchAllSurveys,
+  fetchAllTemplates,
+  fetchCompletedSurveys,
+  fetchPublishedTemplates,
+  fetchSurveyStats,
+  fetchTemplateStats,
+  Survey,
+  SurveyStats,
+  Template,
+  TemplateStats
 } from "@/lib/api"
-import { 
-  BarChart3, 
-  ChevronDown, 
-  FileText, 
-  Home, 
-  Info, 
-  LayoutTemplate, 
-  Plus, 
-  Search, 
-  TrendingDown, 
-  TrendingUp 
+import {
+  BarChart3,
+  FileText,
+  Home,
+  Info,
+  LayoutTemplate,
+  Plus,
+  Search,
+  TrendingDown,
+  TrendingUp
 } from "lucide-react"
 import { useEffect, useState } from "react"
 
-const getMetrics = (stats: SurveyStats) => [
+const getSurveyMetrics = (stats: SurveyStats) => [
   {
     title: "Total Surveys",
     value: stats.Total_Surveys.toString(),
     change: `${stats.Percent_Surveys}%`,
-    period: "vs last period",
+    period: "vs last month",
     trend: parseFloat(stats.Percent_Surveys) >= 0 ? "up" : "down",
   },
   {
     title: "Active Surveys",
     value: stats.Active.toString(),
     change: `${stats.Percent_Active}%`,
-    period: "vs last period",
+    period: "vs last month",
     trend: parseFloat(stats.Percent_Active) >= 0 ? "up" : "down",
   },
   {
     title: "Completed Surveys",
     value: stats.Completed.toString(),
     change: `${stats.Percent_Completed}%`,
-    period: "vs last period",
+    period: "vs last month",
     trend: parseFloat(stats.Percent_Completed) >= 0 ? "up" : "down",
+  },
+]
+
+const getTemplateMetrics = (stats: TemplateStats) => [
+  {
+    title: "Total Templates",
+    value: stats.Total_Templates.toString(),
+    change: `${stats.Percent_Templates}%`,
+    period: "vs last month",
+    trend: parseFloat(stats.Percent_Templates) >= 0 ? "up" : "down",
+  },
+  {
+    title: "Drafts",
+    value: stats.Drafts.toString(),
+    change: `${stats.Percent_Drafts}%`,
+    period: "vs last month",
+    trend: parseFloat(stats.Percent_Drafts) >= 0 ? "up" : "down",
+  },
+  {
+    title: "Published",
+    value: stats.Published.toString(),
+    change: `${stats.Percent_Published}%`,
+    period: "vs last month",
+    trend: parseFloat(stats.Percent_Published) >= 0 ? "up" : "down",
   },
 ]
 
@@ -78,7 +103,8 @@ const Dashboard = () => {
   const [templateType, setTemplateType] = useState<'all' | 'published'>('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(5)
-  const [metrics, setMetrics] = useState<ReturnType<typeof getMetrics>>([])
+  const [surveyMetrics, setSurveyMetrics] = useState<ReturnType<typeof getSurveyMetrics>>([])
+  const [templateMetrics, setTemplateMetrics] = useState<ReturnType<typeof getTemplateMetrics>>([])
   const [activeAccordion, setActiveAccordion] = useState<string>('surveys')
 
   useEffect(() => {
@@ -91,12 +117,14 @@ const Dashboard = () => {
             fetchSurveyStats()
           ])
           setSurveys(surveysData)
-          setMetrics(getMetrics(statsData))
+          setSurveyMetrics(getSurveyMetrics(statsData))
         } else {
-          const templatesData = templateType === 'all' 
-            ? await fetchAllTemplates() 
-            : await fetchPublishedTemplates()
+          const [templatesData, templateStats] = await Promise.all([
+            templateType === 'all' ? fetchAllTemplates() : fetchPublishedTemplates(),
+            fetchTemplateStats()
+          ])
           setTemplates(templatesData)
+          setTemplateMetrics(getTemplateMetrics(templateStats))
         }
       } catch (error) {
         console.error('Error fetching data:', error)
@@ -530,31 +558,51 @@ const Dashboard = () => {
         {/* Content */}
         <main className="flex-1 overflow-auto p-6">
           {/* Metrics Cards */}
-          {activeSection === 'surveys' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {metrics.map((metric, index) => (
-                <Card key={index}>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-sm font-medium text-gray-600">{metric.title}</CardTitle>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">
+            {activeSection === 'surveys' ? (
+              surveyMetrics.map((metric, index) => (
+                <Card key={`survey-${index}`}>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium">
+                      {metric.title}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold text-gray-900 mb-1">{metric.value}</div>
-                    <div className="flex items-center text-xs">
-                      {metric.trend === "up" ? (
+                    <div className="text-2xl font-bold">{metric.value}</div>
+                    <p className="text-xs text-gray-500 flex items-center">
+                      {metric.trend === 'up' ? (
                         <TrendingUp className="w-3 h-3 mr-1 text-green-500" />
                       ) : (
                         <TrendingDown className="w-3 h-3 mr-1 text-red-500" />
                       )}
-                      <span className={metric.trend === "up" ? "text-green-600" : "text-red-600"}>
-                        {metric.change}
-                      </span>
-                      <span className="text-gray-500 ml-1">{metric.period}</span>
-                    </div>
+                      {metric.change} {metric.period}
+                    </p>
                   </CardContent>
                 </Card>
-              ))}
-            </div>
-          )}
+              ))
+            ) : (
+              templateMetrics.map((metric, index) => (
+                <Card key={`template-${index}`}>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium">
+                      {metric.title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{metric.value}</div>
+                    <p className="text-xs text-gray-500 flex items-center">
+                      {metric.trend === 'up' ? (
+                        <TrendingUp className="w-3 h-3 mr-1 text-green-500" />
+                      ) : (
+                        <TrendingDown className="w-3 h-3 mr-1 text-red-500" />
+                      )}
+                      {metric.change} {metric.period}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
 
           {activeSection === 'templates' ? renderTemplatesTable() : renderSurveysTable()}
         </main>
