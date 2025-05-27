@@ -21,8 +21,8 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { fetchAllSurveys, fetchCompletedSurveys, Survey, fetchSurveyStats, SurveyStats } from "@/lib/api"
-import { BarChart3, ChevronDown, FileText, Home, Info, Plus, Search, TrendingDown, TrendingUp } from "lucide-react"
+import { fetchAllSurveys, fetchCompletedSurveys, Survey, fetchSurveyStats, SurveyStats, fetchAllTemplates, fetchPublishedTemplates, Template } from "@/lib/api"
+import { BarChart3, ChevronDown, FileText, Home, Info, LayoutTemplate, Plus, Search, TrendingDown, TrendingUp } from "lucide-react"
 import { useEffect, useState } from "react"
 
 const getMetrics = (stats: SurveyStats) => [
@@ -49,25 +49,36 @@ const getMetrics = (stats: SurveyStats) => [
   },
 ]
 
-export default function Dashboard() {
+const Dashboard = () => {
   const [searchTerm, setSearchTerm] = useState("")
   const [surveys, setSurveys] = useState<Survey[]>([])
+  const [templates, setTemplates] = useState<Template[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [activeSection, setActiveSection] = useState<'surveys' | 'templates'>('surveys')
   const [surveyType, setSurveyType] = useState<'all' | 'completed'>('all')
+  const [templateType, setTemplateType] = useState<'all' | 'published'>('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(5)
   const [metrics, setMetrics] = useState<ReturnType<typeof getMetrics>>([])
+  const [activeAccordion, setActiveAccordion] = useState<string>('surveys')
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true)
-        const [surveysData, statsData] = await Promise.all([
-          surveyType === 'all' ? fetchAllSurveys() : fetchCompletedSurveys(),
-          fetchSurveyStats()
-        ])
-        setSurveys(surveysData)
-        setMetrics(getMetrics(statsData))
+        if (activeSection === 'surveys') {
+          const [surveysData, statsData] = await Promise.all([
+            surveyType === 'all' ? fetchAllSurveys() : fetchCompletedSurveys(),
+            fetchSurveyStats()
+          ])
+          setSurveys(surveysData)
+          setMetrics(getMetrics(statsData))
+        } else {
+          const templatesData = templateType === 'all' 
+            ? await fetchAllTemplates() 
+            : await fetchPublishedTemplates()
+          setTemplates(templatesData)
+        }
       } catch (error) {
         console.error('Error fetching data:', error)
         // You might want to show an error toast here
@@ -76,8 +87,9 @@ export default function Dashboard() {
       }
     }
 
+
     fetchData()
-  }, [surveyType])
+  }, [activeSection, surveyType, templateType])
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -88,12 +100,28 @@ export default function Dashboard() {
         </div>
 
         <nav className="flex-1 px-4 space-y-2">
-          <Button variant="ghost" className="w-full justify-start bg-gray-100">
+          <Button 
+            variant="ghost" 
+            className={`w-full justify-start ${activeSection === 'surveys' ? 'bg-gray-100' : ''}`}
+            onClick={() => setActiveSection('surveys')}
+          >
             <Home className="mr-2 h-4 w-4" />
             Dashboard
           </Button>
-          <Accordion type="single" collapsible className="w-full">
-            <AccordionItem value="surveys" className="border-0">
+          
+          {/* Surveys Section */}
+          <Accordion 
+            type="single" 
+            collapsible 
+            className="w-full"
+            value={activeAccordion}
+            onValueChange={setActiveAccordion}
+          >
+            <AccordionItem 
+              value="surveys" 
+              className="border-0"
+              onClick={() => setActiveAccordion(activeAccordion === 'surveys' ? '' : 'surveys')}
+            >
               <AccordionTrigger className="py-2 px-3 hover:no-underline hover:bg-gray-100 rounded-md [&[data-state=open]>svg]:rotate-180">
                 <div className="flex items-center">
                   <FileText className="mr-3 h-4 w-4 text-gray-500 flex-shrink-0" />
@@ -105,7 +133,11 @@ export default function Dashboard() {
                   <Button 
                     variant="ghost" 
                     className={`w-full justify-start h-8 text-sm ${surveyType === 'all' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}`}
-                    onClick={() => setSurveyType('all')}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setActiveSection('surveys')
+                      setSurveyType('all')
+                    }}
                   >
                     <span>All Surveys</span>
                     {surveyType === 'all' && (
@@ -117,7 +149,11 @@ export default function Dashboard() {
                   <Button 
                     variant="ghost" 
                     className={`w-full justify-start h-8 text-sm ${surveyType === 'completed' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}`}
-                    onClick={() => setSurveyType('completed')}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setActiveSection('surveys')
+                      setSurveyType('completed')
+                    }}
                   >
                     <span>Completed Surveys</span>
                     {surveyType === 'completed' && (
@@ -130,6 +166,65 @@ export default function Dashboard() {
               </AccordionContent>
             </AccordionItem>
           </Accordion>
+          
+          {/* Templates Section */}
+          <Accordion 
+            type="single" 
+            collapsible 
+            className="w-full"
+            value={activeAccordion}
+            onValueChange={setActiveAccordion}
+          >
+            <AccordionItem 
+              value="templates" 
+              className="border-0"
+              onClick={() => setActiveAccordion(activeAccordion === 'templates' ? '' : 'templates')}
+            >
+              <AccordionTrigger className="py-2 px-3 hover:no-underline hover:bg-gray-100 rounded-md [&[data-state=open]>svg]:rotate-180">
+                <div className="flex items-center">
+                  <LayoutTemplate className="mr-3 h-4 w-4 text-gray-500 flex-shrink-0" />
+                  <span className="text-sm font-medium">Templates</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="pt-2">
+                <div className="space-y-1 pl-7">
+                  <Button 
+                    variant="ghost" 
+                    className={`w-full justify-start h-8 text-sm ${templateType === 'all' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}`}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setActiveSection('templates')
+                      setTemplateType('all')
+                    }}
+                  >
+                    <span>All Templates</span>
+                    {templateType === 'all' && (
+                      <svg className="ml-auto h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    className={`w-full justify-start h-8 text-sm ${templateType === 'published' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}`}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setActiveSection('templates')
+                      setTemplateType('published')
+                    }}
+                  >
+                    <span>Published Templates</span>
+                    {templateType === 'published' && (
+                      <svg className="ml-auto h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </Button>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+          
           <Button variant="ghost" className="w-full justify-start">
             <BarChart3 className="mr-2 h-4 w-4" />
             Analytics
@@ -137,7 +232,10 @@ export default function Dashboard() {
         </nav>
 
         <div className="p-4">
-          <Button className="w-full bg-blue-600 hover:bg-blue-700">
+          <Button 
+            className="w-full bg-blue-600 hover:bg-blue-700"
+            onClick={() => setActiveSection('templates')}
+          >
             <Plus className="w-4 h-4 mr-2" />
             Create Template
           </Button>
@@ -182,152 +280,141 @@ export default function Dashboard() {
             ))}
           </div>
 
-          {/* Active Surveys Section */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <CardTitle className="text-lg font-semibold">Active Surveys</CardTitle>
-                  <Info className="w-4 h-4 text-gray-400" />
+          {activeSection === 'surveys' ? (
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="text-lg font-semibold">Active Surveys</CardTitle>
+                    <Info className="w-4 h-4 text-gray-400" />
+                  </div>
+                  <div className="relative">
+                    <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <Input
+                      placeholder="Search survey"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-9 w-64"
+                    />
+                  </div>
                 </div>
-                <div className="relative">
-                  <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                  <Input
-                    placeholder="Search survey"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-9 w-64"
-                  />
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>ID</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Launch Date</TableHead>
-                    <TableHead>Url</TableHead>
-                    <TableHead>BioData</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {isLoading ? (
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8">
-                        <div className="flex justify-center">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-                        </div>
-                      </TableCell>
+                      <TableHead>ID</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Launch Date</TableHead>
+                      <TableHead>Url</TableHead>
+                      <TableHead>BioData</TableHead>
+                      <TableHead>Status</TableHead>
                     </TableRow>
-                  ) : surveys.length > 0 ? (
-                    surveys
-                      .filter(survey => 
-                        searchTerm === '' || 
-                        survey.Name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        survey.SurveyId.toString().includes(searchTerm)
-                      )
-                      .slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
-                      .map((survey) => (
-                        <TableRow key={survey.SurveyId}>
-                          <TableCell className="font-medium">{survey.SurveyId}</TableCell>
-                          <TableCell className="text-gray-600">{survey.Name}</TableCell>
-                          <TableCell className="text-gray-600">{survey.LaunchDate}</TableCell>
-                          <TableCell>
-                            <a href={survey.URL} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                              View Survey
-                            </a>
-                          </TableCell>
-                          <TableCell className="text-gray-600">{survey.Biodata || 'N/A'}</TableCell>
-                          <TableCell>
-                            <Badge 
-                              variant={survey.Status === 'Completed' ? 'default' : 'secondary'}
-                              className={survey.Status === 'Completed' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}
-                            >
-                              {survey.Status}
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-                        {surveyType === 'all' 
-                          ? 'No surveys found. Create your first survey to get started.' 
-                          : 'No completed surveys found.'}
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {isLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8">
+                          <div className="flex justify-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : surveys.length > 0 ? (
+                      surveys
+                        .filter(survey => 
+                          searchTerm === '' || 
+                          survey.Name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          survey.SurveyId.toString().includes(searchTerm)
+                        )
+                        .slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
+                        .map((survey) => (
+                          <TableRow key={survey.SurveyId}>
+                            <TableCell className="font-medium">{survey.SurveyId}</TableCell>
+                            <TableCell className="text-gray-600">{survey.Name}</TableCell>
+                            <TableCell className="text-gray-600">{survey.LaunchDate}</TableCell>
+                            <TableCell>
+                              <a href={survey.URL} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                                View Survey
+                              </a>
+                            </TableCell>
+                            <TableCell className="text-gray-600">{survey.Biodata || 'N/A'}</TableCell>
+                            <TableCell>
+                              <Badge 
+                                variant={survey.Status === 'Completed' ? 'default' : 'secondary'}
+                                className={survey.Status === 'Completed' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}
+                              >
+                                {survey.Status}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                          {surveyType === 'all' 
+                            ? 'No surveys found. Create your first survey to get started.' 
+                            : 'No completed surveys found.'}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
 
-              {/* Pagination */}
-              <div className="flex items-center justify-between mt-4">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <span>Rows per page</span>
-                  <select 
-                    className="border border-gray-300 rounded px-2 py-1 bg-white"
-                    value={rowsPerPage}
-                    onChange={(e) => {
-                      setRowsPerPage(Number(e.target.value));
-                      setCurrentPage(1);
-                    }}
-                  >
-                    <option value={1}>1</option>
-                    <option value={2}>2</option>
-                    <option value={5}>5</option>
-                  </select>
-                </div>
-
-                <Pagination>
-                  <PaginationContent>
-                    <PaginationItem>
-                      <PaginationPrevious 
-                        href="#"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setCurrentPage(p => Math.max(1, p - 1));
-                        }}
-                        className={currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-                        aria-disabled={currentPage === 1}
-                      />
-                    </PaginationItem>
-                    {Array.from({ 
-                      length: Math.ceil(surveys.length / rowsPerPage) 
-                    }).map((_, i) => (
-                      <PaginationItem key={i}>
-                        <PaginationLink
-                          href="#"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setCurrentPage(i + 1);
-                          }}
-                          isActive={currentPage === i + 1}
-                        >
-                          {i + 1}
-                        </PaginationLink>
+                {/* Pagination */}
+                <div className="flex items-center justify-between mt-4">
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <span>Rows per page</span>
+                    <select 
+                      className="border border-gray-300 rounded px-2 py-1 bg-white"
+                      value={rowsPerPage}
+                      onChange={(e) => setRowsPerPage(Number(e.target.value))}
+                    >
+                      {[5, 10, 20].map((size) => (
+                        <option key={size} value={size}>
+                          {size}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious 
+                          onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                          className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+                        />
                       </PaginationItem>
-                    ))}
-                    <PaginationItem>
-                      <PaginationNext 
-                        href="#"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setCurrentPage(p => Math.min(Math.ceil(surveys.length / rowsPerPage), p + 1));
-                        }}
-                        className={currentPage >= Math.ceil(surveys.length / rowsPerPage) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-                        aria-disabled={currentPage >= Math.ceil(surveys.length / rowsPerPage)}
-                      />
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
-              </div>
-            </CardContent>
-          </Card>
+                      {Array.from({ length: Math.ceil(surveys.length / rowsPerPage) }, (_, i) => i + 1).map((page) => (
+                        <PaginationItem key={page}>
+                          <PaginationLink 
+                            isActive={currentPage === page}
+                            onClick={() => setCurrentPage(page)}
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      ))}
+                      <PaginationItem>
+                        <PaginationNext 
+                          onClick={() => setCurrentPage(p => Math.min(Math.ceil(surveys.length / rowsPerPage), p + 1))}
+                          className={currentPage >= Math.ceil(surveys.length / rowsPerPage) ? 'pointer-events-none opacity-50' : ''}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="flex-1 flex items-center justify-center">
+              <p className="text-gray-500">Templates section will be implemented here</p>
+            </div>
+          )}
         </main>
       </div>
     </div>
   )
 }
+
+export default Dashboard
