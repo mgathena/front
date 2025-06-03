@@ -57,14 +57,14 @@ const getSurveyMetrics = (stats: SurveyStats) => [
     title: "Active Surveys",
     value: stats.Active.toString(),
     change: `${stats.Percent_Active}%`,
-    period: "vs last month",
+    period: " vs last month",
     trend: parseFloat(stats.Percent_Active) >= 0 ? "up" : "down",
   },
   {
     title: "Completed Surveys",
     value: stats.Completed.toString(),
     change: `${stats.Percent_Completed}%`,
-    period: "vs last month",
+    period: " vs last month",
     trend: parseFloat(stats.Percent_Completed) >= 0 ? "up" : "down",
   },
 ]
@@ -575,7 +575,9 @@ const Dashboard = () => {
                       ) : (
                         <TrendingDown className="w-3 h-3 mr-1 text-red-500" />
                       )}
-                      {metric.change} {metric.period}
+                      <span className={metric.change.startsWith('+') ? 'text-green-500' : 'text-red-500'}>
+  {metric.change}
+</span> {metric.period}
                     </p>
                   </CardContent>
                 </Card>
