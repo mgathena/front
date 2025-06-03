@@ -197,7 +197,7 @@ const Dashboard = () => {
                         {template.Status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-gray-600">{template.CreationDate}</TableCell>
+                    <TableCell className="text-gray-600">{template.Date}</TableCell>
                   </TableRow>
                 ))
             ) : (
@@ -312,7 +312,7 @@ const Dashboard = () => {
                   <TableRow key={survey.SurveyId}>
                     <TableCell className="font-medium">{survey.SurveyId}</TableCell>
                     <TableCell className="text-gray-600">{survey.Name}</TableCell>
-                    <TableCell className="text-gray-600">{survey.LaunchDate}</TableCell>
+                    <TableCell className="text-gray-600">{survey.Date}</TableCell>
                     <TableCell>
                       <a href={survey.URL} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
                         View Survey
