@@ -522,18 +522,18 @@ const Dashboard = () => {
               </AccordionContent>
             </AccordionItem>
           </Accordion>
-
+          <div className="p-4">
+            <Button
+              className="w-full bg-blue-600 hover:bg-blue-700"
+              onClick={() => setActiveSection('templates')}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create Template
+            </Button>
+          </div>
         </nav>
 
-        <div className="p-4">
-          <Button
-            className="w-full bg-blue-600 hover:bg-blue-700"
-            onClick={() => setActiveSection('templates')}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Create Template
-          </Button>
-        </div>
+
       </div>
 
       {/* Main Content */}
