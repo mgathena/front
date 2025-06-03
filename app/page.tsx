@@ -44,6 +44,7 @@ import {
   TrendingUp
 } from "lucide-react"
 import { useEffect, useState } from "react"
+import { useRouter } from 'next/navigation'
 
 const getSurveyMetrics = (stats: SurveyStats) => [
   {
@@ -94,6 +95,7 @@ const getTemplateMetrics = (stats: TemplateStats) => [
 ]
 
 const Dashboard = () => {
+  const router = useRouter()
   const [searchTerm, setSearchTerm] = useState("")
   const [surveys, setSurveys] = useState<Survey[]>([])
   const [templates, setTemplates] = useState<Template[]>([])
@@ -525,7 +527,7 @@ const Dashboard = () => {
           <div className="p-4">
             <Button
               className="w-full bg-blue-600 hover:bg-blue-700"
-              onClick={() => setActiveSection('templates')}
+              onClick={() => router.push('/templates/new')}
             >
               <Plus className="w-4 h-4 mr-2" />
               Create Template
