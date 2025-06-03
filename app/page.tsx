@@ -177,8 +177,8 @@ const Dashboard = () => {
               </TableRow>
             ) : templates.length > 0 ? (
               templates
-                .filter(template => 
-                  searchTerm === '' || 
+                .filter(template =>
+                  searchTerm === '' ||
                   template.TemplateName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                   template.TemplateId.toString().includes(searchTerm)
                 )
@@ -188,10 +188,10 @@ const Dashboard = () => {
                     <TableCell className="font-medium">{template.TemplateId}</TableCell>
                     <TableCell className="text-gray-600">{template.TemplateName}</TableCell>
                     <TableCell>
-                      <Badge 
+                      <Badge
                         variant={template.Status === 'Published' ? 'default' : 'secondary'}
-                        className={template.Status === 'Published' 
-                          ? 'bg-green-100 text-green-800' 
+                        className={template.Status === 'Published'
+                          ? 'bg-green-100 text-green-800'
                           : 'bg-yellow-100 text-yellow-800'}
                       >
                         {template.Status}
@@ -203,8 +203,8 @@ const Dashboard = () => {
             ) : (
               <TableRow>
                 <TableCell colSpan={4} className="text-center py-8 text-gray-500">
-                  {templateType === 'all' 
-                    ? 'No templates found. Create your first template to get started.' 
+                  {templateType === 'all'
+                    ? 'No templates found. Create your first template to get started.'
                     : 'No published templates found.'}
                 </TableCell>
               </TableRow>
@@ -214,7 +214,7 @@ const Dashboard = () => {
         <div className="flex items-center justify-between mt-4">
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <span>Rows per page</span>
-            <select 
+            <select
               className="border border-gray-300 rounded px-2 py-1 bg-white"
               value={rowsPerPage}
               onChange={(e) => {
@@ -232,14 +232,14 @@ const Dashboard = () => {
           <Pagination>
             <PaginationContent>
               <PaginationItem>
-                <PaginationPrevious 
+                <PaginationPrevious
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
                 />
               </PaginationItem>
               {Array.from({ length: Math.ceil(templates.length / rowsPerPage) }, (_, i) => i + 1).map((page) => (
                 <PaginationItem key={page}>
-                  <PaginationLink 
+                  <PaginationLink
                     isActive={currentPage === page}
                     onClick={() => setCurrentPage(page)}
                   >
@@ -248,7 +248,7 @@ const Dashboard = () => {
                 </PaginationItem>
               ))}
               <PaginationItem>
-                <PaginationNext 
+                <PaginationNext
                   onClick={() => setCurrentPage(p => Math.min(Math.ceil(templates.length / rowsPerPage), p + 1))}
                   className={currentPage >= Math.ceil(templates.length / rowsPerPage) ? 'pointer-events-none opacity-50' : ''}
                 />
@@ -302,8 +302,8 @@ const Dashboard = () => {
               </TableRow>
             ) : surveys.length > 0 ? (
               surveys
-                .filter(survey => 
-                  searchTerm === '' || 
+                .filter(survey =>
+                  searchTerm === '' ||
                   survey.Name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                   survey.SurveyId.toString().includes(searchTerm)
                 )
@@ -320,7 +320,7 @@ const Dashboard = () => {
                     </TableCell>
                     <TableCell className="text-gray-600">{survey.Biodata || 'N/A'}</TableCell>
                     <TableCell>
-                      <Badge 
+                      <Badge
                         variant={survey.Status === 'Completed' ? 'default' : 'secondary'}
                         className={survey.Status === 'Completed' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}
                       >
@@ -332,8 +332,8 @@ const Dashboard = () => {
             ) : (
               <TableRow>
                 <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-                  {surveyType === 'all' 
-                    ? 'No surveys found. Create your first survey to get started.' 
+                  {surveyType === 'all'
+                    ? 'No surveys found. Create your first survey to get started.'
                     : 'No completed surveys found.'}
                 </TableCell>
               </TableRow>
@@ -343,7 +343,7 @@ const Dashboard = () => {
         <div className="flex items-center justify-between mt-4">
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <span>Rows per page</span>
-            <select 
+            <select
               className="border border-gray-300 rounded px-2 py-1 bg-white"
               value={rowsPerPage}
               onChange={(e) => {
@@ -361,14 +361,14 @@ const Dashboard = () => {
           <Pagination>
             <PaginationContent>
               <PaginationItem>
-                <PaginationPrevious 
+                <PaginationPrevious
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
                 />
               </PaginationItem>
               {Array.from({ length: Math.ceil(surveys.length / rowsPerPage) }, (_, i) => i + 1).map((page) => (
                 <PaginationItem key={page}>
-                  <PaginationLink 
+                  <PaginationLink
                     isActive={currentPage === page}
                     onClick={() => setCurrentPage(page)}
                   >
@@ -377,7 +377,7 @@ const Dashboard = () => {
                 </PaginationItem>
               ))}
               <PaginationItem>
-                <PaginationNext 
+                <PaginationNext
                   onClick={() => setCurrentPage(p => Math.min(Math.ceil(surveys.length / rowsPerPage), p + 1))}
                   className={currentPage >= Math.ceil(surveys.length / rowsPerPage) ? 'pointer-events-none opacity-50' : ''}
                 />
@@ -398,25 +398,25 @@ const Dashboard = () => {
         </div>
 
         <nav className="flex-1 px-4 space-y-2">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             className={`w-full justify-start ${activeSection === 'surveys' ? 'bg-gray-100' : ''}`}
             onClick={() => setActiveSection('surveys')}
           >
             <Home className="mr-2 h-4 w-4" />
             Dashboard
           </Button>
-          
+
           {/* Surveys Section */}
-          <Accordion 
-            type="single" 
-            collapsible 
+          <Accordion
+            type="single"
+            collapsible
             className="w-full"
             value={activeAccordion}
             onValueChange={setActiveAccordion}
           >
-            <AccordionItem 
-              value="surveys" 
+            <AccordionItem
+              value="surveys"
               className="border-0"
               onClick={() => setActiveAccordion(activeAccordion === 'surveys' ? '' : 'surveys')}
             >
@@ -428,8 +428,8 @@ const Dashboard = () => {
               </AccordionTrigger>
               <AccordionContent className="pt-2">
                 <div className="space-y-1 pl-7">
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     className={`w-full justify-start h-8 text-sm ${surveyType === 'all' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}`}
                     onClick={(e) => {
                       e.stopPropagation()
@@ -444,8 +444,8 @@ const Dashboard = () => {
                       </svg>
                     )}
                   </Button>
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     className={`w-full justify-start h-8 text-sm ${surveyType === 'completed' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}`}
                     onClick={(e) => {
                       e.stopPropagation()
@@ -464,17 +464,17 @@ const Dashboard = () => {
               </AccordionContent>
             </AccordionItem>
           </Accordion>
-          
+
           {/* Templates Section */}
-          <Accordion 
-            type="single" 
-            collapsible 
+          <Accordion
+            type="single"
+            collapsible
             className="w-full"
             value={activeAccordion}
             onValueChange={setActiveAccordion}
           >
-            <AccordionItem 
-              value="templates" 
+            <AccordionItem
+              value="templates"
               className="border-0"
               onClick={() => setActiveAccordion(activeAccordion === 'templates' ? '' : 'templates')}
             >
@@ -486,8 +486,8 @@ const Dashboard = () => {
               </AccordionTrigger>
               <AccordionContent className="pt-2">
                 <div className="space-y-1 pl-7">
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     className={`w-full justify-start h-8 text-sm ${templateType === 'all' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}`}
                     onClick={(e) => {
                       e.stopPropagation()
@@ -502,8 +502,8 @@ const Dashboard = () => {
                       </svg>
                     )}
                   </Button>
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     className={`w-full justify-start h-8 text-sm ${templateType === 'published' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}`}
                     onClick={(e) => {
                       e.stopPropagation()
@@ -522,15 +522,11 @@ const Dashboard = () => {
               </AccordionContent>
             </AccordionItem>
           </Accordion>
-          
-          <Button variant="ghost" className="w-full justify-start">
-            <BarChart3 className="mr-2 h-4 w-4" />
-            Analytics
-          </Button>
+
         </nav>
 
         <div className="p-4">
-          <Button 
+          <Button
             className="w-full bg-blue-600 hover:bg-blue-700"
             onClick={() => setActiveSection('templates')}
           >
@@ -576,8 +572,8 @@ const Dashboard = () => {
                         <TrendingDown className="w-3 h-3 mr-1 text-red-500" />
                       )}
                       <span className={metric.change.startsWith('+') ? 'text-green-500' : 'text-red-500'}>
-  {metric.change}
-</span> {metric.period}
+                        {metric.change}
+                      </span> {metric.period}
                     </p>
                   </CardContent>
                 </Card>
