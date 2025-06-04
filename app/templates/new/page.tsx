@@ -1,6 +1,13 @@
 "use client"
 
 import { useState } from 'react'
+import { v4 as uuidv4 } from 'uuid'
+import {
+  createTemplate,
+  createQuestion,
+  addQuestionToTemplate,
+  updateTemplateStatus
+} from '@/lib/api'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -46,18 +53,18 @@ export default function NewTemplatePage() {
   }
 
   const updateQuestion = (id: string, data: Partial<Question>) => {
-    setQuestions(questions.map(q => 
+    setQuestions(questions.map(q =>
       q.id === id ? { ...q, ...data } : q
     ))
   }
 
   const addOption = (questionId: string) => {
-    setQuestions(questions.map(q => 
-      q.id === questionId 
-        ? { 
-            ...q, 
-            options: [...(q.options || []), ''] 
-          } 
+    setQuestions(questions.map(q =>
+      q.id === questionId
+        ? {
+          ...q,
+          options: [...(q.options || []), '']
+        }
         : q
     ))
   }
@@ -77,22 +84,62 @@ export default function NewTemplatePage() {
     setQuestions(questions.filter(q => q.id !== id))
   }
 
-  const saveDraft = () => {
-    // TODO: Implement save draft functionality
-    console.log('Saving draft:', { templateName, questions })
+  const saveTemplate = async (isPublish: boolean = false) => {
+    try {
+      // 1. Create template
+      const templateId = uuidv4();
+      await createTemplate({
+        TemplateId: templateId,
+        TemplateName: templateName
+      });
+
+      // 2. Create questions and add them to the template
+      for (let i = 0; i < questions.length; i++) {
+        const question = questions[i];
+        const questionId = uuidv4();
+
+        // Create the question
+        await createQuestion({
+          QueId: questionId,
+          QueText: question.question,
+          QueScale: question.type === 'rating' ? String(question.scale) : '',
+          QueCriteria: question.type === 'rating' ? 'scale' : 'categorical',
+          QueCategories: question.type === 'category' ? question.options || [] : ''
+        });
+
+        // Add question to template
+        await addQuestionToTemplate({
+          TemplateId: templateId,
+          QueId: questionId,
+          Order: String(i + 1)
+        });
+      }
+
+      // 3. Update template status if publishing
+      if (isPublish) {
+        await updateTemplateStatus(templateId, 'Published');
+      } else {
+        await updateTemplateStatus(templateId, 'Draft');
+      }
+
+      // 4. Redirect to templates page on success
+      router.push('/');
+    } catch (error) {
+      console.error('Error saving template:', error);
+      // TODO: Show error to user
+      alert(`Failed to ${isPublish ? 'publish' : 'save'} template. Please try again.`);
+    }
   }
 
-  const publishTemplate = () => {
-    // TODO: Implement publish functionality
-    console.log('Publishing template:', { templateName, questions })
-  }
+  const saveDraft = () => saveTemplate(false);
+  const publishTemplate = () => saveTemplate(true);
 
   if (showNameInput) {
     return (
       <div className="container mx-auto p-6 max-w-4xl">
         <div className="mb-6">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             onClick={handleBack}
             className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
           >
@@ -100,7 +147,7 @@ export default function NewTemplatePage() {
             Back to Dashboard
           </Button>
         </div>
-        
+
         <Card className="shadow-sm">
           <CardHeader>
             <CardTitle className="text-xl font-semibold">Create New Template</CardTitle>
@@ -119,16 +166,16 @@ export default function NewTemplatePage() {
                   className="max-w-md"
                 />
               </div>
-              
+
               <div className="flex justify-end gap-3 pt-4">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={handleBack}
                   className="px-6"
                 >
                   Cancel
                 </Button>
-                <Button 
+                <Button
                   onClick={handleNext}
                   disabled={!templateName.trim()}
                   className="px-6"
@@ -146,8 +193,8 @@ export default function NewTemplatePage() {
   return (
     <div className="container mx-auto p-6 max-w-4xl">
       <div className="mb-6">
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           onClick={handleBack}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
         >
@@ -159,9 +206,9 @@ export default function NewTemplatePage() {
       <Card className="shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-xl font-semibold">Create Template Form</CardTitle>
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             className="gap-2"
             onClick={saveDraft}
           >
@@ -169,7 +216,7 @@ export default function NewTemplatePage() {
             Save Draft
           </Button>
         </CardHeader>
-        
+
         <CardContent className="space-y-6">
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700">Template Name</label>
@@ -191,9 +238,9 @@ export default function NewTemplatePage() {
                     <h3 className="font-medium">
                       {question.type === 'rating' ? 'Rating Question' : 'Category Question'} {index + 1}
                     </h3>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       className="text-red-500 hover:text-red-600"
                       onClick={() => removeQuestion(question.id)}
                     >
@@ -210,11 +257,11 @@ export default function NewTemplatePage() {
                       placeholder="Enter your question"
                     />
                   </div>
-                  
+
                   {question.type === 'rating' ? (
                     <div className="space-y-2">
                       <label className="text-sm text-gray-600">Rating Scale (1-10)</label>
-                      <select 
+                      <select
                         value={question.scale}
                         onChange={(e) => updateQuestion(question.id, { scale: parseInt(e.target.value) })}
                         className="w-full p-2 border rounded-md"
@@ -228,9 +275,9 @@ export default function NewTemplatePage() {
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
                         <label className="text-sm text-gray-600">Options</label>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           className="text-blue-600 hover:text-blue-700 text-sm"
                           onClick={() => addOption(question.id)}
                         >
@@ -258,16 +305,16 @@ export default function NewTemplatePage() {
 
           {/* Add Question Buttons */}
           <div className="flex gap-4 pt-4">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="flex-1 gap-2"
               onClick={() => addQuestion('rating')}
             >
               <Plus className="w-4 h-4" />
               Add Rating Question
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="flex-1 gap-2"
               onClick={() => addQuestion('category')}
             >
@@ -278,11 +325,11 @@ export default function NewTemplatePage() {
         </CardContent>
 
         <CardFooter className="flex justify-end p-4 border-t">
-          <Button 
+          <Button
             onClick={publishTemplate}
             className="gap-2"
-            disabled={questions.length === 0 || questions.some(q => 
-              !q.question || 
+            disabled={questions.length === 0 || questions.some(q =>
+              !q.question ||
               (q.type === 'category' && (!q.options || q.options.some(opt => !opt.trim())))
             )}
           >
